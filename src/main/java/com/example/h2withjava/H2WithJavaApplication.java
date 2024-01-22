@@ -3,6 +3,7 @@ package com.example.h2withjava;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+import javax.swing.plaf.nimbus.State;
 import java.sql.*;
 
 @SpringBootApplication
@@ -39,99 +40,64 @@ public class H2WithJavaApplication {
     }
 
     private static void createRegistrationTable() {
-        try {
-            //Step 2:  Open a connection to the database
-            conn = DriverManager.getConnection(DB_URL, USER, PASSWORD);
 
-            //Step 3 Prepare a SQL query
-            stmt = conn.createStatement();
-            String sql = "CREATE TABLE   REGISTRATION " +
-                    "(id INTEGER AUTO_INCREMENT  PRIMARY KEY, " +
-                    " first VARCHAR(255), " +
-                    " last VARCHAR(255), " +
-                    " age INTEGER)";
+        String sql = "CREATE TABLE   REGISTRATION " +
+                "(id INTEGER AUTO_INCREMENT  PRIMARY KEY, " +
+                " first VARCHAR(255), " +
+                " last VARCHAR(255), " +
+                " age INTEGER)";
+
+        //Step 2:  Open a connection to the database
+        //Step 3 Prepare a SQL query
+        try (Connection conn = DriverManager.getConnection(DB_URL, USER, PASSWORD);
+             Statement stmt = conn.createStatement();){
 
             //Step 4:  Execute the SQL statement
             stmt.executeUpdate(sql);
 
-            // STEP 6 and 7: Clean-up environment
-
             //Step 5:  Handle the response.  We don't have to do this for a CREATE statement
 
             //Steps 6 and 7:  Close open things
-            stmt.close();
-            conn.close();
-        } catch (
-                SQLException ex) {
+            //don't need this anymore with try-with-resources
+            //stmt.close();
+            //conn.close();
+        } catch (SQLException ex) {
             throw new RuntimeException(ex);
-        } catch (Exception e) {
-            //Handle errors for Class.forName
-            e.printStackTrace();
-        } finally {
-            //finally block used to close resources
-            try {
-                if (stmt != null) stmt.close();
-            } catch (SQLException se2) {
-            } // nothing we can do
-            try {
-                if (conn != null) conn.close();
-            } catch (SQLException se) {
-                se.printStackTrace();
-            }
         }
     }
 
         public static void addDataToRegistrationTable()  {
-            try {
-                //Step 2:  Open a connection to the database
-                conn = DriverManager.getConnection(DB_URL, USER, PASSWORD);
+            String sql = "insert into REGISTRATION(first, last, age)  VALUES" +
+                    "('Bill', 'Fairfield', 71)";
 
-                //Step 3 Prepare a SQL query
-                stmt = conn.createStatement();
-                String sql = "insert into REGISTRATION(first, last, age)  VALUES" +
-                        "('Bill', 'Fairfield', 71)";
+            //Step 2:  Open a connection to the database
+            //Step 3 Prepare a SQL query
+            try (Connection conn = DriverManager.getConnection(DB_URL, USER, PASSWORD);
+                 Statement stmt = conn.createStatement();){
 
                 //Step 4:  Execute the SQL statement
                 stmt.executeUpdate(sql);
 
-                // STEP 6 and 7: Clean-up environment
-
                 //Step 5:  Handle the response.  We don't have to do this for a CREATE statement
 
                 //Steps 6 and 7:  Close open things
-                stmt.close();
-                conn.close();
-            } catch (
-                    SQLException ex) {
+                //don't need this anymore with try-with-resources
+                //stmt.close();
+                //conn.close();
+            } catch (SQLException ex) {
                 throw new RuntimeException(ex);
-            } catch (Exception e) {
-                //Handle errors for Class.forName
-                e.printStackTrace();
-            } finally {
-                //finally block used to close resources
-                try {
-                    if (stmt != null) stmt.close();
-                } catch (SQLException se2) {
-                } // nothing we can do
-                try {
-                    if (conn != null) conn.close();
-                } catch (SQLException se) {
-                    se.printStackTrace();
-                }
             }
         }
 
         public static void retrieveDataFromRegistrationTable()  {
-            try {
-                //Step 2:  Open a connection to the database
-                conn = DriverManager.getConnection(DB_URL, USER, PASSWORD);
+            String sql = "SELECT * FROM REGISTRATION";
 
-                //Step 3 Prepare a SQL query
-                stmt = conn.createStatement();
-                String sql = "SELECT * FROM REGISTRATION";
-
-                //Step 4:  Execute the SQL statement
-                ResultSet rs = stmt.executeQuery(sql);
+            //Step 2:  Open a connection to the database
+            //Step 3 Prepare a SQL query
+            try (Connection conn = DriverManager.getConnection(DB_URL, USER, PASSWORD);
+                 Statement stmt = conn.createStatement();
+                 //Step 4:  Execute the SQL statement
+                 ResultSet rs = stmt.executeQuery(sql);){
 
                 //Step 5:  Handle the response.
                 while(rs.next()) {
@@ -147,143 +113,97 @@ public class H2WithJavaApplication {
                 }
 
                 //Steps 6 and 7:  Close open things
-                stmt.close();
-                rs.close();
-                conn.close();
-            } catch (
-                    SQLException ex) {
+                //don't need this anymore with try-with-resources
+                //rs.close();
+                //stmt.close();
+                //conn.close();
+            } catch (SQLException ex) {
                 throw new RuntimeException(ex);
-            } catch (Exception e) {
-                //Handle errors for Class.forName
-                e.printStackTrace();
-            } finally {
-                //finally block used to close resources
-                try {
-                    if (stmt != null) stmt.close();
-                } catch (SQLException se2) {
-                } // nothing we can do
-                try {
-                    if (conn != null) conn.close();
-                } catch (SQLException se) {
-                    se.printStackTrace();
-                }
             }
         }
 
     public static void updateAndRetrieveDataFromRegistration() {
-        try {
-            // STEP 2: Open a connection
+        String sql = "UPDATE Registration " + "SET age = 30 WHERE first='Bill'";
+        //Step 2:  Open a connection to the database
+        //Step 3 Prepare a SQL query
+        try (Connection conn = DriverManager.getConnection(DB_URL, USER, PASSWORD);
+             Statement stmt = conn.createStatement();){
 
-            conn = DriverManager.getConnection(DB_URL,USER,PASSWORD);
-
-            // STEP# 3 and 4: Prepare and Execute two queries.  Note that we only need one statement and one sql declaration
-            stmt = conn.createStatement();
-            String sql = "UPDATE Registration " + "SET age = 30 WHERE first='Bill'";
+            //Step 4:  Execute the SQL statement
             stmt.executeUpdate(sql);
 
-            sql = "SELECT id, first, last, age FROM REGISTRATION";
+            String selectSql = "SELECT id, first, last, age FROM REGISTRATION";
 
-            ResultSet rs = stmt.executeQuery(sql);
+            try (ResultSet rs = stmt.executeQuery(selectSql)) {
+                // STEP 5: Extract data from result set
+                while (rs.next()) {
+                    int id = rs.getInt("id");
+                    String first = rs.getString("first");
+                    String last = rs.getString("last");
+                    int age = rs.getInt("age");
 
-            // STEP 5: Extract data from result set
-            while(rs.next()) {
-                int id  = rs.getInt("id");
-                String first = rs.getString("first");
-                String last = rs.getString("last");
-                int age = rs.getInt("age");
-
-                System.out.print("ID: " + id);
-                System.out.print(", First: " + first);
-                System.out.print(", Last: " + last);
-                System.out.println(", Age: " + age);
+                    System.out.print("ID: " + id);
+                    System.out.print(", First: " + first);
+                    System.out.print(", Last: " + last);
+                    System.out.println(", Age: " + age);
+                }
             }
 
             // STEP 6 and 7: Clean-up environment
-            rs.close();
-            stmt.close();
-            conn.close();
+            //don't need this anymore with try-with-resources
+            //rs.close();
+            //stmt.close();
+            //conn.close();
         } catch(SQLException se) {
             // Handle errors for JDBC
             se.printStackTrace();
-        } catch(Exception e) {
-            // Handle errors for Class.forName
-            e.printStackTrace();
-        } finally {
-            // finally block used to close resources
-            try {
-                if(stmt!=null) stmt.close();
-            } catch(SQLException se2) {
-            } // nothing we can do
-            try {
-                if(conn!=null) conn.close();
-            } catch(SQLException se) {
-                se.printStackTrace();
-            }
         }
     }
 
     public static void retrieveDataFromEmployees()  {
-        try {
-            //Step 2:  Open a connection to the database
-            conn = DriverManager.getConnection(DB_URL, USER, PASSWORD);
-
-            //Step 3 Prepare a SQL query
-            stmt = conn.createStatement();
-            String sql = "SELECT * FROM EMPLOYEES";
+        String sql = "SELECT * FROM EMPLOYEES";
+        //Step 2:  Open a connection to the database
+        //Step 3 Prepare a SQL query
+        try (Connection conn = DriverManager.getConnection(DB_URL, USER, PASSWORD);
+             Statement stmt = conn.createStatement();){
 
             //Step 4:  Execute the SQL statement
-            ResultSet rs = stmt.executeQuery(sql);
+            try (ResultSet rs = stmt.executeQuery(sql);) {
 
-            //Step 5:  Handle the response.
-            while(rs.next()) {
-                int id = rs.getInt("employee_id");
-                String first_name = rs.getString("first_name");
-                String last_name = rs.getString("last_name");
-                String email = rs.getString("email");
-                int company_id = rs.getInt("company_id");
+                //Step 5:  Handle the response.
+                while (rs.next()) {
+                    int id = rs.getInt("employee_id");
+                    String first_name = rs.getString("first_name");
+                    String last_name = rs.getString("last_name");
+                    String email = rs.getString("email");
+                    int company_id = rs.getInt("company_id");
 
-                System.out.print("ID: " + id);
-                System.out.print(", First: " + first_name);
-                System.out.print(", Last: " + last_name);
-                System.out.print(", Email: " + email);
-                System.out.println(", Company ID: " + company_id);
+                    System.out.print("ID: " + id);
+                    System.out.print(", First: " + first_name);
+                    System.out.print(", Last: " + last_name);
+                    System.out.print(", Email: " + email);
+                    System.out.println(", Company ID: " + company_id);
+                }
             }
 
             //Steps 6 and 7:  Close open things
-            stmt.close();
-            conn.close();
-        } catch (
-                SQLException ex) {
+            //don't need this anymore with try-with-resources
+            //stmt.close();
+            //conn.close();
+        } catch (SQLException ex) {
             throw new RuntimeException(ex);
-        } catch (Exception e) {
-            //Handle errors for Class.forName
-            e.printStackTrace();
-        } finally {
-            //finally block used to close resources
-            try {
-                if (stmt != null) stmt.close();
-            } catch (SQLException se2) {
-            } // nothing we can do
-            try {
-                if (conn != null) conn.close();
-            } catch (SQLException se) {
-                se.printStackTrace();
-            }
         }
     }
 
     public static void retrieveDataFromEmployeesWithTableJoin()  {
-        try {
-            //Step 2:  Open a connection to the database
-            conn = DriverManager.getConnection(DB_URL, USER, PASSWORD);
-
-            //Step 3 Prepare a SQL query
-            stmt = conn.createStatement();
-            String sql = ("SELECT first_name, last_name, email, company_name FROM EMPLOYEES" +
-                    " JOIN COMPANIES ON COMPANIES.company_id = EMPLOYEES.company_id");
-
-            //Step 4:  Execute the SQL statement
-            ResultSet rs = stmt.executeQuery(sql);
+        String sql = ("SELECT first_name, last_name, email, company_name FROM EMPLOYEES" +
+                " JOIN COMPANIES ON COMPANIES.company_id = EMPLOYEES.company_id");
+        //Step 2:  Open a connection to the database
+        //Step 3 Prepare a SQL query
+        try (Connection conn = DriverManager.getConnection(DB_URL, USER, PASSWORD);
+             Statement stmt = conn.createStatement();
+             //Step 4:  Execute the SQL statement
+             ResultSet rs = stmt.executeQuery(sql);){
 
             //Step 5:  Handle the response.
             while(rs.next()) {
@@ -299,25 +219,11 @@ public class H2WithJavaApplication {
             }
 
             //Steps 6 and 7:  Close open things
-            stmt.close();
-            conn.close();
-        } catch (
-                SQLException ex) {
+            //don't need this anymore with try-with-resources
+            //stmt.close();
+            //conn.close();
+        } catch (SQLException ex) {
             throw new RuntimeException(ex);
-        } catch (Exception e) {
-            //Handle errors for Class.forName
-            e.printStackTrace();
-        } finally {
-            //finally block used to close resources
-            try {
-                if (stmt != null) stmt.close();
-            } catch (SQLException se2) {
-            } // nothing we can do
-            try {
-                if (conn != null) conn.close();
-            } catch (SQLException se) {
-                se.printStackTrace();
-            }
         }
     }
 }
