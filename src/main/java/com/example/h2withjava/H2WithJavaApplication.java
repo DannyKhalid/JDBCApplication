@@ -196,8 +196,8 @@ public class H2WithJavaApplication {
     }
 
     public static void retrieveDataFromEmployeesWithTableJoin()  {
-        String sql = ("SELECT first_name, last_name, email, company_name FROM EMPLOYEES" +
-                " JOIN COMPANIES ON COMPANIES.company_id = EMPLOYEES.company_id");
+        String sql = "SELECT first_name, last_name, email, company_name FROM EMPLOYEES" +
+                " JOIN COMPANIES ON COMPANIES.company_id = EMPLOYEES.company_id";
         //Step 2:  Open a connection to the database
         //Step 3 Prepare a SQL query
         try (Connection conn = DriverManager.getConnection(DB_URL, USER, PASSWORD);
